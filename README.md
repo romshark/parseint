@@ -38,6 +38,45 @@ Base16Uint16_uint16/max_low/bytes-10                        10.875n ± 0%   3.12
 geomean                                                      9.575n        3.076n       -67.87%
 ```
 
+### base-16 (hexadecimal) 16-bit unsigned integer `"fffx"` (err: syntax):
+
+```sh
+./bench.sh Base16Uint16/syntax 10
+```
+
+```
+goos: darwin
+goarch: arm64
+pkg: github.com/romshark/parseint
+                                    │ .strconv_Base16Uint16_syntax.txt │  .parseint_Base16Uint16_syntax.txt  │
+                                    │              sec/op              │   sec/op     vs base                │
+Base16Uint16/syntax-10                                    40.270n ± 0%   3.210n ± 0%  -92.03% (p=0.000 n=10)
+Base16Uint16/syntax/bytes-10                              43.445n ± 0%   3.127n ± 0%  -92.80% (p=0.000 n=10)
+Base16Uint16_uint16/syntax-10                             40.335n ± 1%   3.192n ± 1%  -92.09% (p=0.000 n=10)
+Base16Uint16_uint16/syntax/bytes-10                       43.410n ± 0%   3.147n ± 1%  -92.75% (p=0.000 n=10)
+geomean                                                    41.84n        3.169n       -92.43%
+
+                                    │ .strconv_Base16Uint16_syntax.txt │   .parseint_Base16Uint16_syntax.txt    │
+                                    │               B/op               │   B/op     vs base                     │
+Base16Uint16/syntax-10                                      52.00 ± 0%   0.00 ± 0%  -100.00% (p=0.000 n=10)
+Base16Uint16/syntax/bytes-10                                52.00 ± 0%   0.00 ± 0%  -100.00% (p=0.000 n=10)
+Base16Uint16_uint16/syntax-10                               52.00 ± 0%   0.00 ± 0%  -100.00% (p=0.000 n=10)
+Base16Uint16_uint16/syntax/bytes-10                         52.00 ± 0%   0.00 ± 0%  -100.00% (p=0.000 n=10)
+geomean                                                     52.00                   ?                       ¹ ²
+¹ summaries must be >0 to compute geomean
+² ratios must be >0 to compute geomean
+
+                                    │ .strconv_Base16Uint16_syntax.txt │    .parseint_Base16Uint16_syntax.txt    │
+                                    │            allocs/op             │ allocs/op   vs base                     │
+Base16Uint16/syntax-10                                      2.000 ± 0%   0.000 ± 0%  -100.00% (p=0.000 n=10)
+Base16Uint16/syntax/bytes-10                                2.000 ± 0%   0.000 ± 0%  -100.00% (p=0.000 n=10)
+Base16Uint16_uint16/syntax-10                               2.000 ± 0%   0.000 ± 0%  -100.00% (p=0.000 n=10)
+Base16Uint16_uint16/syntax/bytes-10                         2.000 ± 0%   0.000 ± 0%  -100.00% (p=0.000 n=10)
+geomean                                                     2.000                    ?                       ¹ ²
+¹ summaries must be >0 to compute geomean
+² ratios must be >0 to compute geomean
+```
+
 ### base-10 32-bit unsigned integer `"4294967295"`:
 
 ```sh
