@@ -96,6 +96,8 @@ func Base10Uint32[S string | []byte, U ~uint64 | ~uint32](s S) (U, error) {
 	const maxValue = 1<<32 - 1
 
 	var n uint64
+	// A batch of 8 digits here might actually give a geomean of -1.7%
+	// but I'm not entirely sure this is worth it.
 	for _, c := range []byte(s) {
 		if c < '0' || c > '9' {
 			return 0, ErrSyntax

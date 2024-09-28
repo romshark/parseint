@@ -666,7 +666,9 @@ func BenchmarkBase10Uint32(b *testing.B) {
 		name  string
 		input string
 	}{
-		{"min", "0"},
+		{"l1", "0"},
+		{"l3", "100"},
+		{"l6", "429495"},
 		{"max", "4294967295"},
 		{"syntax", "-"},
 		{"overflow", "99999999999"},
