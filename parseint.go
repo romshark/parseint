@@ -8,12 +8,11 @@ var (
 	ErrOverflow = errors.New("overflow")
 )
 
-// Base16Uint16 parses s as a base-16 (hexadecimal) unsigned 16-bit number.
-// If any error is encountered ok=false is returned.
-// Base16Uint16 is comparable to strconv.ParseUint(s, 16, 16) but more efficient.
+// Base16Uint16 parses s as a base-16 (hexadecimal) unsigned 16-bit integer.
 // ErrSyntax is returned in any error case. ErrOverflow will never be returned
 // because it would cost extra to determine overflow errors and this computation
 // would be wasted in most cases where we don't care what kind of error there was.
+// Base16Uint16 is comparable to strconv.ParseUint(s, 16, 16) but is more efficient.
 func Base16Uint16[S string | []byte, U ~uint64 | ~uint32 | ~uint16](s S) (U, error) {
 	switch len(s) {
 	case 1:
@@ -87,30 +86,89 @@ func init() {
 }
 
 // Base10Uint32 parses s as a base-10 unsigned 32-bit integer.
-// Returns ok=false if s contains an invalid character or overflows a uint32.
-// Base10Uint32 is comparable to strconv.ParseUint(s, 10, 32) but more more efficient.
+// Returns ErrSyntax if s contains an invalid character
+// Returns ErrOverflow if the stringified value overflows a uint32.
+// Base10Uint32 is comparable to strconv.ParseUint(s, 10, 32) but is more efficient.
 func Base10Uint32[S string | []byte, U ~uint64 | ~uint32](s S) (U, error) {
 	if len(s) == 0 {
 		return 0, ErrSyntax
 	}
-	const maxValue = uint64(1)<<uint(32) - 1
+	const maxValue = 1<<32 - 1
 
 	var n uint64
 	for _, c := range []byte(s) {
 		if c < '0' || c > '9' {
 			return 0, ErrSyntax
 		}
-		d := c - '0'
-
 		n *= uint64(10)
-
-		n1 := n + uint64(d)
+		n1 := n + uint64(c-'0')
 		if n1 < n || n1 > maxValue {
-			// n+d overflows
 			return 0, ErrOverflow
 		}
 		n = n1
 	}
 
 	return U(n), nil
+}
+
+// Base10Uint64 parses s as a base-10 unsigned 64-bit integer.
+// Returns ErrSyntax if s contains an invalid character.
+// Returns ErrOverflow if the stringified value overflows a uint64.
+// Base10Uint64 is comparable to strconv.ParseUint(s, 10, 64) but is more efficient.
+func Base10Uint64[S string | []byte](s S) (uint64, error) {
+	if len(s) == 0 {
+		return 0, ErrSyntax
+	}
+	const maxValue = 1<<64 - 1
+
+	var n uint64
+	for len(s) > 7 { // Process 8 digits at a time as long as possible.
+		c0, c1, c2, c3, c4, c5, c6, c7 := s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7]
+		if c0 < '0' || c0 > '9' || c1 < '0' || c1 > '9' ||
+			c2 < '0' || c2 > '9' || c3 < '0' || c3 > '9' ||
+			c4 < '0' || c4 > '9' || c5 < '0' || c5 > '9' ||
+			c6 < '0' || c6 > '9' || c7 < '0' || c7 > '9' {
+			return 0, ErrSyntax
+		}
+		d := uint64(c0-'0')*10_000_000 +
+			uint64(c1-'0')*1_000_000 +
+			uint64(c2-'0')*100_000 +
+			uint64(c3-'0')*10_000 +
+			uint64(c4-'0')*1_000 +
+			uint64(c5-'0')*100 +
+			uint64(c6-'0')*10 +
+			uint64(c7-'0')
+		if n > (maxValue-d)/100_000_000 {
+			return 0, ErrOverflow
+		}
+		n = n*100_000_000 + d
+		s = s[8:]
+	}
+	for len(s) > 3 { // Process 4 digits at a time as long as possible.
+		c0, c1, c2, c3 := s[0], s[1], s[2], s[3]
+		if c0 < '0' || c0 > '9' || c1 < '0' || c1 > '9' ||
+			c2 < '0' || c2 > '9' || c3 < '0' || c3 > '9' {
+			return 0, ErrSyntax
+		}
+		d := uint64(c0-'0')*1_000 +
+			uint64(c1-'0')*100 +
+			uint64(c2-'0')*10 +
+			uint64(c3-'0')
+		if n > (maxValue-d)/10_000 {
+			return 0, ErrOverflow
+		}
+		n = n*10_000 + d
+		s = s[4:]
+	}
+	for _, c := range []byte(s) { // Process remaining digits one at a time.
+		if c < '0' || c > '9' {
+			return 0, ErrSyntax
+		}
+		d := uint64(c - '0')
+		if n > (maxValue-d)/10 {
+			return 0, ErrOverflow
+		}
+		n = n*10 + d
+	}
+	return n, nil
 }
