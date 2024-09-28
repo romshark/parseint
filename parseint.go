@@ -54,7 +54,7 @@ func Base16Uint16[S string | []byte, U ~uint64 | ~uint32 | ~uint16](s S) (U, err
 const uint16base16InvalidByte = 0xff
 
 // lutHex is a lookup table mapping hex characters to their respective base-10 value.
-// All other bytes are mapped to uint16base16InvalidCharacter.
+// All other bytes are mapped to uint16base16InvalidByte.
 var lutHex = [256]uint8{}
 
 func init() {
