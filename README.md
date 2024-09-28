@@ -13,7 +13,10 @@
 Package `parseint` is a collection of efficient generic integer parsing functions for Go.
 Go's standard library provides [strconv.ParseInt](https://pkg.go.dev/strconv#ParseInt) and
 [strconv.ParseUint](https://pkg.go.dev/strconv#ParseUint) which are very useful general
-purpose implementations but they're not optimally efficient for common cases.
+purpose implementations but they're not optimally efficient for common cases such as
+base10-64bit, hex-16bit, etc. On error `strconv.ParseInt` allocates, which makes it
+unnecessarily slow when dealing with invalid values and unsuitable for situations
+when dynamic memory allocation is unacceptable.
 
 ## Benchmark
 
