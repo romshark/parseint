@@ -308,7 +308,7 @@ func BenchmarkBase16Uint16(b *testing.B) {
 		{"syntax", "fffx"},
 		{"overflow", "FFFFF"},
 	} {
-		b.Run(td.name, func(b *testing.B) {
+		b.Run(td.name+"/string", func(b *testing.B) {
 			for n := 0; n < b.N; n++ {
 				a, err = fn(td.input)
 			}
@@ -358,7 +358,7 @@ func BenchmarkBase16Uint16_uint16(b *testing.B) {
 		{"syntax", "fffx"},
 		{"overflow", "FFFFF"},
 	} {
-		b.Run(td.name, func(b *testing.B) {
+		b.Run(td.name+"/string", func(b *testing.B) {
 			for n := 0; n < b.N; n++ {
 				a, err = fn(td.input)
 			}
@@ -403,7 +403,7 @@ func BenchmarkBase10Uint32(b *testing.B) {
 		{"syntax", "-"},
 		{"overflow", "99999999999"},
 	} {
-		b.Run(td.name, func(b *testing.B) {
+		b.Run(td.name+"/string", func(b *testing.B) {
 			for n := 0; n < b.N; n++ {
 				a, err = fn(td.input)
 			}
