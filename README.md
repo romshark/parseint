@@ -20,8 +20,10 @@ when dynamic memory allocation is unacceptable.
 
 ## Benchmark
 
-- On X86 processors `parseint` achieves a geomean of around `-79.43%`.
-- On Apple M1 processors `parseint` achieves a geomean of around `-73.48%`.
+- On X86 processors `parseint` achieves a geomean* of around `-79.43%`.
+- On Apple M1 processors `parseint` achieves a geomean* of around `-73.48%`.
+
+\* _on average across benchmarks_
 
 Use `./bench.sh . 8` to execute benchmark and compare results.
 
