@@ -93,20 +93,24 @@ func TestBase10Uint32(t *testing.T) {
 		fn(parseint.Base10Uint32[[]byte, uint32]([]byte(input)))
 	}
 
+	requireOK := func(t *testing.T, expect uint64, input string) {
+		callBase10Uint32(input, func(actual any, err error) {
+			require.NoError(t, err)
+			switch actual := actual.(type) {
+			case uint64:
+				require.Equal(t, uint64(expect), actual)
+			case uint32:
+				require.Equal(t, uint32(expect), actual)
+			default:
+				t.Fatalf("unexpected type: %T", actual)
+			}
+		})
+	}
+
 	t.Run("range_0_10k", func(t *testing.T) {
 		for i := uint64(0); i <= 10_000; i++ {
 			dec := strconv.FormatUint(i, 10)
-			callBase10Uint32(dec, func(a any, err error) {
-				require.NoError(t, err)
-				switch a := a.(type) {
-				case uint64:
-					require.Equal(t, uint64(i), a)
-				case uint32:
-					require.Equal(t, uint32(i), a)
-				default:
-					t.Fatalf("unexpected type: %T", a)
-				}
-			})
+			requireOK(t, i, dec)
 		}
 	})
 
@@ -114,17 +118,7 @@ func TestBase10Uint32(t *testing.T) {
 		mid := uint64(math.MaxUint32) / 2
 		for i := mid; i <= mid+10_000; i++ {
 			dec := strconv.FormatUint(i, 10)
-			callBase10Uint32(dec, func(a any, err error) {
-				require.NoError(t, err)
-				switch a := a.(type) {
-				case uint64:
-					require.Equal(t, uint64(i), a)
-				case uint32:
-					require.Equal(t, uint32(i), a)
-				default:
-					t.Fatalf("unexpected type: %T", a)
-				}
-			})
+			requireOK(t, i, dec)
 		}
 	})
 
@@ -132,17 +126,7 @@ func TestBase10Uint32(t *testing.T) {
 		max := uint64(math.MaxUint32)
 		for i := max; i <= max-10_000; i++ {
 			dec := strconv.FormatUint(i, 10)
-			callBase10Uint32(dec, func(a any, err error) {
-				require.NoError(t, err)
-				switch a := a.(type) {
-				case uint64:
-					require.Equal(t, uint64(i), a)
-				case uint32:
-					require.Equal(t, uint32(i), a)
-				default:
-					t.Fatalf("unexpected type: %T", a)
-				}
-			})
+			requireOK(t, i, dec)
 		}
 	})
 
@@ -296,18 +280,24 @@ func TestBase10Uint64(t *testing.T) {
 		fn(parseint.Base10Uint64([]byte(input)))
 	}
 
+	requireOK := func(t *testing.T, expect uint64, input string) {
+		callBase10Uint64(input, func(actual any, err error) {
+			require.NoError(t, err)
+			switch actual := actual.(type) {
+			case uint64:
+				require.Equal(t, uint64(expect), actual)
+			case uint32:
+				require.Equal(t, uint32(expect), actual)
+			default:
+				t.Fatalf("unexpected type: %T", actual)
+			}
+		})
+	}
+
 	t.Run("range_0_10k", func(t *testing.T) {
 		for i := uint64(0); i <= 10_000; i++ {
 			dec := strconv.FormatUint(i, 10)
-			callBase10Uint64(dec, func(a any, err error) {
-				require.NoError(t, err)
-				switch a := a.(type) {
-				case uint64:
-					require.Equal(t, uint64(i), a)
-				default:
-					t.Fatalf("unexpected type: %T", a)
-				}
-			})
+			requireOK(t, i, dec)
 		}
 	})
 
@@ -315,15 +305,7 @@ func TestBase10Uint64(t *testing.T) {
 		mid := uint64(math.MaxUint64) / 2
 		for i := mid; i <= mid+10_000; i++ {
 			dec := strconv.FormatUint(i, 10)
-			callBase10Uint64(dec, func(a any, err error) {
-				require.NoError(t, err)
-				switch a := a.(type) {
-				case uint64:
-					require.Equal(t, uint64(i), a)
-				default:
-					t.Fatalf("unexpected type: %T", a)
-				}
-			})
+			requireOK(t, i, dec)
 		}
 	})
 
@@ -331,15 +313,7 @@ func TestBase10Uint64(t *testing.T) {
 		max := uint64(math.MaxUint64)
 		for i := max; i <= max-10_000; i++ {
 			dec := strconv.FormatUint(i, 10)
-			callBase10Uint64(dec, func(a any, err error) {
-				require.NoError(t, err)
-				switch a := a.(type) {
-				case uint64:
-					require.Equal(t, uint64(i), a)
-				default:
-					t.Fatalf("unexpected type: %T", a)
-				}
-			})
+			requireOK(t, i, dec)
 		}
 	})
 
