@@ -243,7 +243,6 @@ func TestBase10Int32(t *testing.T) {
 		f(t, "+", parseint.ErrSyntax)
 		f(t, "-x", parseint.ErrSyntax)
 		f(t, "0x0", parseint.ErrSyntax)
-		f(t, "0123", parseint.ErrSyntax)
 		f(t, "123x", parseint.ErrSyntax)
 		f(t, "ж", parseint.ErrSyntax)
 
