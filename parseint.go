@@ -86,7 +86,7 @@ func init() {
 }
 
 // Base10Uint32 parses s as a base-10 unsigned 32-bit integer.
-// Returns ErrSyntax if s contains an invalid character
+// Returns ErrSyntax if s contains an invalid character.
 // Returns ErrOverflow if the stringified value overflows a uint32.
 // Base10Uint32 is comparable to strconv.ParseUint(s, 10, 32) but is more efficient.
 func Base10Uint32[S string | []byte, U ~uint64 | ~uint32](s S) (U, error) {
@@ -110,6 +110,54 @@ func Base10Uint32[S string | []byte, U ~uint64 | ~uint32](s S) (U, error) {
 		n = n1
 	}
 
+	return U(n), nil
+}
+
+// Base10Int32 parses s as a base-10 signed 32-bit integer.
+// Returns ErrSyntax if s contains an invalid character.
+// Returns ErrOverflow if the stringified value overflows an int32.
+// Base10Int32 is comparable to strconv.ParseInt(s, 10, 32) but is more efficient.
+func Base10Int32[S string | []byte, U ~int64 | ~int32](s S) (U, error) {
+	if len(s) == 0 {
+		return 0, ErrSyntax
+	}
+	var n int64
+	switch s[0] {
+	case '-': // Negative integer.
+		const max = int64(1 << 31)
+		if len(s) == 1 { // Sign without any following digits.
+			return 0, ErrSyntax
+		}
+		for _, c := range []byte(s[1:]) {
+			if c < '0' || c > '9' {
+				return 0, ErrSyntax
+			}
+			n *= 10
+			n += int64(c - '0')
+			if n > max {
+				return 0, ErrOverflow
+			}
+		}
+		return U(-n), nil
+	case '+':
+		if len(s) == 1 { // Sign without any following digits.
+			return 0, ErrSyntax
+		}
+		s = s[1:] // Remove sign.
+	}
+
+	// Positive integer.
+	const max = int64(1<<31 - 1)
+	for _, c := range []byte(s) {
+		if c < '0' || c > '9' {
+			return 0, ErrSyntax
+		}
+		n *= 10
+		n += int64(c - '0')
+		if n > max {
+			return 0, ErrOverflow
+		}
+	}
 	return U(n), nil
 }
 
