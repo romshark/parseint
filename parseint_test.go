@@ -240,12 +240,15 @@ func TestBase10Int32(t *testing.T) {
 		// Invalid input
 		f(t, "", parseint.ErrSyntax)
 		f(t, "-", parseint.ErrSyntax)
+		f(t, "+", parseint.ErrSyntax)
 		f(t, "-x", parseint.ErrSyntax)
 		f(t, "0x0", parseint.ErrSyntax)
+		f(t, "0123", parseint.ErrSyntax)
 		f(t, "123x", parseint.ErrSyntax)
 		f(t, "ж", parseint.ErrSyntax)
 
 		// Overflow
+		f(t, "+2147483648", parseint.ErrOverflow)
 		f(t, "2147483648", parseint.ErrOverflow)
 		f(t, "3147483648", parseint.ErrOverflow)
 		f(t, "4294967295", parseint.ErrOverflow)
