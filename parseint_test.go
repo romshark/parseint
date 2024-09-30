@@ -864,6 +864,7 @@ func BenchmarkBase16Uint16_uint16(b *testing.B) {
 		{"max_upp", "FFFF"},
 		{"syntax", "fffx"},
 		{"overflow", "FFFFF"},
+		{"leadzero31", "0000000000000000000000000000000F"},
 	} {
 		b.Run(td.name+"/string", func(b *testing.B) {
 			for n := 0; n < b.N; n++ {
@@ -911,6 +912,7 @@ func BenchmarkBase10Uint32(b *testing.B) {
 		{"max", "4294967295"},
 		{"syntax", "-"},
 		{"overflow", "99999999999"},
+		{"leadzero31", "00000000000000000000000000000001"},
 	} {
 		b.Run(td.name+"/string", func(b *testing.B) {
 			for n := 0; n < b.N; n++ {
@@ -963,6 +965,7 @@ func BenchmarkBase10Int32(b *testing.B) {
 		{"overflow_min", "-2147483649"},
 		{"overflow_max", "2147483648"},
 		{"overflow_len", "999999999999999999"},
+		{"leadzero31", "00000000000000000000000000000001"},
 	} {
 		b.Run(td.name+"/string", func(b *testing.B) {
 			for n := 0; n < b.N; n++ {
@@ -1010,6 +1013,7 @@ func BenchmarkBase10Uint64(b *testing.B) {
 		{"max", "18446744073709551615"},
 		{"syntax", "0.000000000000001"},
 		{"overflow", "18446744073709551616"},
+		{"leadzero31", "00000000000000000000000000000001"},
 	} {
 		b.Run(td.name+"/string", func(b *testing.B) {
 			for n := 0; n < b.N; n++ {
