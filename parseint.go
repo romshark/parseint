@@ -14,6 +14,23 @@ var (
 // would be wasted in most cases where we don't care what kind of error there was.
 // Base16Uint16 is comparable to strconv.ParseUint(s, 16, 16) but is more efficient.
 func Base16Uint16[S string | []byte, U ~uint64 | ~uint32 | ~uint16](s S) (U, error) {
+	if len(s) == 0 {
+		return 0, ErrSyntax
+	}
+	if s[0] == '0' { // Skip all leading zeroes if any
+		var i int
+		var c byte
+		for i, c = range []byte(s) {
+			if c != '0' {
+				s = s[i:]
+				goto INT
+			}
+		}
+		if i == len(s)-1 {
+			return 0, nil // Input consists exclusively of zeroes.
+		}
+	}
+INT:
 	switch len(s) {
 	case 1:
 		switch c := s[0]; {
@@ -117,7 +134,7 @@ func Base10Uint32[S string | []byte, U ~uint64 | ~uint32](s S) (U, error) {
 // Returns ErrSyntax if s contains an invalid character.
 // Returns ErrOverflow if the stringified value overflows an int32.
 // Base10Int32 is comparable to strconv.ParseInt(s, 10, 32) but is more efficient.
-func Base10Int32[S string | []byte, U ~int64 | ~int32](s S) (U, error) {
+func Base10Int32[S string | []byte, I ~int64 | ~int32](s S) (I, error) {
 	if len(s) == 0 {
 		return 0, ErrSyntax
 	}
@@ -138,7 +155,7 @@ func Base10Int32[S string | []byte, U ~int64 | ~int32](s S) (U, error) {
 				return 0, ErrOverflow
 			}
 		}
-		return U(-n), nil
+		return I(-n), nil
 	case '+':
 		if len(s) == 1 { // Sign without any following digits.
 			return 0, ErrSyntax
@@ -158,7 +175,7 @@ func Base10Int32[S string | []byte, U ~int64 | ~int32](s S) (U, error) {
 			return 0, ErrOverflow
 		}
 	}
-	return U(n), nil
+	return I(n), nil
 }
 
 // Base10Uint64 parses s as a base-10 unsigned 64-bit integer.

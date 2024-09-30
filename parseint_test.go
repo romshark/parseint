@@ -406,6 +406,7 @@ func TestBase10Uint64(t *testing.T) {
 func fuzzBase16Uint16[U uint64 | uint32 | uint16](f *testing.F) {
 	// Valid inputs.
 	f.Add("0")
+	f.Add("0000")
 	f.Add("1")
 	f.Add("12")
 	f.Add("123")
@@ -418,6 +419,7 @@ func fuzzBase16Uint16[U uint64 | uint32 | uint16](f *testing.F) {
 	f.Add("FFFF")
 	f.Add("abcd")
 	f.Add("eeFF")
+	f.Add("0000000000000000000000000000eeFF")
 
 	// Invalid inputs.
 	f.Add("11111") // Overflow
@@ -432,10 +434,20 @@ func fuzzBase16Uint16[U uint64 | uint32 | uint16](f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, s string) {
 		x, err := parseint.Base16Uint16[string, U](s)
-		if err == nil && x > math.MaxUint16 {
-			t.Errorf("%q: returned value out of 16-bit range: %x", s, x)
-		} else if err != nil && x != 0 {
-			t.Errorf("%q: failed but returned non-zero value: %x", s, x)
+		std, errStd := strconv.ParseUint(s, 16, 16)
+		if err == nil {
+			if errStd != nil {
+				t.Fatalf("must have returned error %v but didn't: %q", errStd, s)
+			} else if std != uint64(x) {
+				t.Errorf("expected %d; received: %d", std, uint64(x))
+			}
+		} else {
+			if x != 0 {
+				t.Errorf("%q: failed but returned non-zero value: %x", s, x)
+			}
+			if _, err := strconv.ParseUint(s, 16, 16); err == nil {
+				t.Fatalf("unexpected error for input %q: %v", s, err)
+			}
 		}
 	})
 }
@@ -455,6 +467,8 @@ func fuzzBase10Uint32[U uint64 | uint32](f *testing.F) {
 	f.Add("1234567890")
 	f.Add("4294967294")
 	f.Add("4294967295") // Max
+	f.Add("01")
+	f.Add("00000000000000000000000000000001")
 
 	// Invalid inputs.
 	f.Add("")
@@ -476,6 +490,7 @@ func fuzzBase10Uint32[U uint64 | uint32](f *testing.F) {
 	f.Add("4294967296")
 	f.Add("9999999999")
 	f.Add("123456789123456789")
+	f.Add("00000000000000000000004294967296")
 
 	f.Fuzz(func(t *testing.T, s string) {
 		x, err := parseint.Base10Uint32[string, U](s)
@@ -515,6 +530,37 @@ func FuzzBase10Uint64(f *testing.F) {
 	f.Add("100000000000000000")
 	f.Add("1000000000000000000")
 	f.Add("10000000000000000000")
+	f.Add("01")
+	f.Add("001")
+	f.Add("0001")
+	f.Add("00001")
+	f.Add("000001")
+	f.Add("0000001")
+	f.Add("00000001")
+	f.Add("000000001")
+	f.Add("0000000001")
+	f.Add("00000000001")
+	f.Add("000000000001")
+	f.Add("0000000000001")
+	f.Add("00000000000001")
+	f.Add("000000000000001")
+	f.Add("0000000000000001")
+	f.Add("00000000000000001")
+	f.Add("000000000000000001")
+	f.Add("0000000000000000001")
+	f.Add("00000000000000000001")
+	f.Add("000000000000000000001")
+	f.Add("0000000000000000000001")
+	f.Add("00000000000000000000001")
+	f.Add("000000000000000000000001")
+	f.Add("0000000000000000000000001")
+	f.Add("00000000000000000000000001")
+	f.Add("000000000000000000000000001")
+	f.Add("0000000000000000000000000001")
+	f.Add("00000000000000000000000000001")
+	f.Add("000000000000000000000000000001")
+	f.Add("0000000000000000000000000000001")
+	f.Add("00000000000000000000000000000001")
 	f.Add("12")
 	f.Add("123")
 	f.Add("1234")
