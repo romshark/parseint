@@ -496,15 +496,20 @@ func fuzzBase10Uint32[U uint64 | uint32](f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, s string) {
 		x, err := parseint.Base10Uint32[string, U](s)
+		std, errStd := strconv.ParseUint(s, 10, 32)
 		if err == nil {
-			std, err := strconv.ParseUint(s, 10, 32)
-			if err != nil {
-				t.Fatalf("unexpected error for input %q: %v", s, err)
+			if errStd != nil {
+				t.Fatalf("must have returned error %v but didn't: %q", errStd, s)
 			} else if std != uint64(x) {
 				t.Errorf("expected %d; received: %d", std, uint64(x))
 			}
-		} else if x != 0 {
-			t.Errorf("%q: failed but returned non-zero value: %x", s, x)
+		} else {
+			if x != 0 {
+				t.Errorf("%q: failed but returned non-zero value: %x", s, x)
+			}
+			if _, err := strconv.ParseUint(s, 10, 32); err == nil {
+				t.Fatalf("unexpected error for input %q: %v", s, err)
+			}
 		}
 	})
 }
@@ -588,15 +593,20 @@ func fuzzBase10Int32[I int64 | int32](f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, s string) {
 		x, err := parseint.Base10Int32[string, I](s)
+		std, errStd := strconv.ParseInt(s, 10, 32)
 		if err == nil {
-			std, err := strconv.ParseInt(s, 10, 32)
-			if err != nil {
-				t.Fatalf("unexpected error for input %q: %v", s, err)
+			if errStd != nil {
+				t.Fatalf("must have returned error %v but didn't: %q", errStd, s)
 			} else if std != int64(x) {
 				t.Errorf("expected %d; received: %d", std, int64(x))
 			}
-		} else if x != 0 {
-			t.Errorf("%q: failed but returned non-zero value: %x", s, x)
+		} else {
+			if x != 0 {
+				t.Errorf("%q: failed but returned non-zero value: %x", s, x)
+			}
+			if _, err := strconv.ParseInt(s, 10, 32); err == nil {
+				t.Fatalf("unexpected error for input %q: %v", s, err)
+			}
 		}
 	})
 }
@@ -745,15 +755,20 @@ func FuzzBase10Uint64(f *testing.F) {
 
 	f.Fuzz(func(t *testing.T, s string) {
 		x, err := parseint.Base10Uint64[string](s)
+		std, errStd := strconv.ParseUint(s, 10, 64)
 		if err == nil {
-			std, err := strconv.ParseUint(s, 10, 64)
-			if err != nil {
-				t.Fatalf("unexpected error for input %q: %v", s, err)
-			} else if std != x {
-				t.Errorf("expected %d; received: %d", std, x)
+			if errStd != nil {
+				t.Fatalf("must have returned error %v but didn't: %q", errStd, s)
+			} else if std != uint64(x) {
+				t.Errorf("expected %d; received: %d", std, uint64(x))
 			}
-		} else if x != 0 {
-			t.Errorf("%q: failed but returned non-zero value: %x", s, x)
+		} else {
+			if x != 0 {
+				t.Errorf("%q: failed but returned non-zero value: %x", s, x)
+			}
+			if _, err := strconv.ParseUint(s, 10, 64); err == nil {
+				t.Fatalf("unexpected error for input %q: %v", s, err)
+			}
 		}
 	})
 }
