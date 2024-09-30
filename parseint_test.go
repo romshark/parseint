@@ -469,6 +469,8 @@ func fuzzBase10Uint32[U uint64 | uint32](f *testing.F) {
 	f.Add("4294967295") // Max
 	f.Add("01")
 	f.Add("00000000000000000000000000000001")
+	f.Add("0000")
+	f.Add("00000000000000000000000000000000")
 
 	// Invalid inputs.
 	f.Add("")
@@ -506,6 +508,101 @@ func fuzzBase10Uint32[U uint64 | uint32](f *testing.F) {
 		}
 	})
 }
+
+func FuzzBase10Uint32_uint64(f *testing.F) { fuzzBase10Uint32[uint64](f) }
+func FuzzBase10Uint32_uint32(f *testing.F) { fuzzBase10Uint32[uint32](f) }
+
+func fuzzBase10Int32[I int64 | int32](f *testing.F) {
+	// Valid inputs.
+	f.Add("0")
+	f.Add("00000000000000000000000000000000")
+	f.Add("1")
+	f.Add("12")
+	f.Add("123")
+	f.Add("1234")
+	f.Add("999999999")
+	f.Add("1234567890")
+	f.Add("2147483646")
+	f.Add("2147483647") // Max
+	f.Add("0000")
+
+	// Signed
+	f.Add("+0")
+	f.Add("+00000000000000000000000000000000")
+	f.Add("+1")
+	f.Add("+0000001")
+	f.Add("+12")
+	f.Add("+123")
+	f.Add("+1234")
+	f.Add("+999999999")
+	f.Add("+1234567890")
+	f.Add("+2147483646")
+	f.Add("+2147483647") // Max
+	f.Add("+0000")
+
+	// Negative
+	f.Add("-0")
+	f.Add("-0000")
+	f.Add("-00000000000000000000000000000000")
+	f.Add("-1")
+	f.Add("-0000001")
+	f.Add("-00000000000000000000000000000001")
+	f.Add("-12")
+	f.Add("-123")
+	f.Add("-1234")
+	f.Add("-999999999")
+	f.Add("-1234567890")
+	f.Add("-2147483647")
+	f.Add("-2147483648") // Min
+
+	// Invalid inputs.
+	f.Add("")
+	f.Add("-")
+	f.Add("+")
+	f.Add("a")
+	f.Add("af")
+	f.Add("aaaa")
+	f.Add("1a2b")
+	f.Add("FFFF")
+	f.Add("abcd")
+	f.Add("eeFF")
+	f.Add("defg")
+	f.Add("xyz")
+	f.Add("GHIJ")
+	f.Add("🙂")
+	f.Add("🗿")
+	f.Add("♻︎")
+
+	// Overflow
+	f.Add("2147483647")
+	f.Add("4294967296")
+	f.Add("9999999999")
+	f.Add("123456789123456789")
+	f.Add("+2147483647")
+	f.Add("+4294967296")
+	f.Add("+9999999999")
+	f.Add("+123456789123456789")
+	f.Add("-2147483649")
+	f.Add("-9999999999")
+	f.Add("-123456789123456789")
+
+	f.Fuzz(func(t *testing.T, s string) {
+		x, err := parseint.Base10Int32[string, I](s)
+		if err == nil {
+			std, err := strconv.ParseInt(s, 10, 32)
+			if err != nil {
+				t.Fatalf("unexpected error for input %q: %v", s, err)
+			} else if std != int64(x) {
+				t.Errorf("expected %d; received: %d", std, int64(x))
+			}
+		} else if x != 0 {
+			t.Errorf("%q: failed but returned non-zero value: %x", s, x)
+		}
+	})
+}
+
+func FuzzBase10Int32_Int64(f *testing.F) { fuzzBase10Int32[int64](f) }
+func FuzzBase10Int32_Int32(f *testing.F) { fuzzBase10Int32[int32](f) }
 
 func FuzzBase10Uint64(f *testing.F) {
 	// Valid inputs.
@@ -660,9 +757,6 @@ func FuzzBase10Uint64(f *testing.F) {
 		}
 	})
 }
-
-func FuzzBase10Uint32_uint64(f *testing.F) { fuzzBase10Uint32[uint64](f) }
-func FuzzBase10Uint32_uint32(f *testing.F) { fuzzBase10Uint32[uint32](f) }
 
 var fBenchmarkFn = flag.String(
 	"benchfunc",
