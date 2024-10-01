@@ -110,7 +110,7 @@ func Base10Uint32[S string | []byte, U ~uint64 | ~uint32](s S) (U, error) {
 	if len(s) == 0 {
 		return 0, ErrSyntax
 	}
-	const maxValue = 1<<32 - 1
+	const max = 1<<32 - 1
 
 	var n uint64
 	// A batch of 8 digits here might actually give a geomean of -1.7%
@@ -121,7 +121,7 @@ func Base10Uint32[S string | []byte, U ~uint64 | ~uint32](s S) (U, error) {
 		}
 		n *= uint64(10)
 		n1 := n + uint64(c-'0')
-		if n1 < n || n1 > maxValue {
+		if n1 < n || n1 > max {
 			return 0, ErrOverflow
 		}
 		n = n1
@@ -186,7 +186,7 @@ func Base10Uint64[S string | []byte](s S) (uint64, error) {
 	if len(s) == 0 {
 		return 0, ErrSyntax
 	}
-	const maxValue = 1<<64 - 1
+	const max = 1<<64 - 1
 
 	var n uint64
 	for len(s) > 7 { // Process 8 digits at a time as long as possible.
@@ -205,7 +205,7 @@ func Base10Uint64[S string | []byte](s S) (uint64, error) {
 			uint64(c5-'0')*100 +
 			uint64(c6-'0')*10 +
 			uint64(c7-'0')
-		if n > (maxValue-d)/100_000_000 {
+		if n > (max-d)/100_000_000 {
 			return 0, ErrOverflow
 		}
 		n = n*100_000_000 + d
@@ -221,7 +221,7 @@ func Base10Uint64[S string | []byte](s S) (uint64, error) {
 			uint64(c1-'0')*100 +
 			uint64(c2-'0')*10 +
 			uint64(c3-'0')
-		if n > (maxValue-d)/10_000 {
+		if n > (max-d)/10_000 {
 			return 0, ErrOverflow
 		}
 		n = n*10_000 + d
@@ -232,10 +232,141 @@ func Base10Uint64[S string | []byte](s S) (uint64, error) {
 			return 0, ErrSyntax
 		}
 		d := uint64(c - '0')
-		if n > (maxValue-d)/10 {
+		if n > (max-d)/10 {
 			return 0, ErrOverflow
 		}
 		n = n*10 + d
 	}
 	return n, nil
+}
+
+// Base10Int64 parses s as a base-10 signed 64-bit integer.
+// Returns ErrSyntax if s contains an invalid character.
+// Returns ErrOverflow if the stringified value overflows an int64.
+// Base10Int64 is comparable to strconv.ParseInt(s, 10, 64) but is more efficient.
+func Base10Int64[S string | []byte](s S) (int64, error) {
+	if len(s) == 0 {
+		return 0, ErrSyntax
+	}
+	var n uint64
+	switch s[0] {
+	case '-': // Negative integer.
+		const max = uint64(1 << 63)
+		if len(s) == 1 { // Sign without any following digits.
+			return 0, ErrSyntax
+		}
+		s = s[1:]        // Remove the sign
+		for len(s) > 7 { // Process 8 digits at a time as long as possible.
+			c0, c1, c2, c3, c4, c5, c6, c7 := s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7]
+			if c0 < '0' || c0 > '9' || c1 < '0' || c1 > '9' ||
+				c2 < '0' || c2 > '9' || c3 < '0' || c3 > '9' ||
+				c4 < '0' || c4 > '9' || c5 < '0' || c5 > '9' ||
+				c6 < '0' || c6 > '9' || c7 < '0' || c7 > '9' {
+				return 0, ErrSyntax
+			}
+			d := uint64(c0-'0')*10_000_000 +
+				uint64(c1-'0')*1_000_000 +
+				uint64(c2-'0')*100_000 +
+				uint64(c3-'0')*10_000 +
+				uint64(c4-'0')*1_000 +
+				uint64(c5-'0')*100 +
+				uint64(c6-'0')*10 +
+				uint64(c7-'0')
+			if n > (max-d)/100_000_000 {
+				return 0, ErrOverflow
+			}
+			n = n*100_000_000 + d
+			s = s[8:]
+		}
+		for len(s) > 3 { // Process 4 digits at a time as long as possible.
+			c0, c1, c2, c3 := s[0], s[1], s[2], s[3]
+			if c0 < '0' || c0 > '9' || c1 < '0' || c1 > '9' ||
+				c2 < '0' || c2 > '9' || c3 < '0' || c3 > '9' {
+				return 0, ErrSyntax
+			}
+			d := uint64(c0-'0')*1_000 +
+				uint64(c1-'0')*100 +
+				uint64(c2-'0')*10 +
+				uint64(c3-'0')
+			if n > (max-d)/10_000 {
+				return 0, ErrOverflow
+			}
+			n = n*10_000 + d
+			s = s[4:]
+		}
+		for _, c := range []byte(s) { // Process remaining digits one at a time.
+			if c < '0' || c > '9' {
+				return 0, ErrSyntax
+			}
+			n *= 10
+			n += uint64(c - '0')
+			if n > max {
+				return 0, ErrOverflow
+			}
+		}
+		return int64(-n), nil
+	case '+':
+		if len(s) == 1 { // Sign without any following digits.
+			return 0, ErrSyntax
+		}
+		s = s[1:] // Remove sign.
+	}
+
+	// Positive integer.
+	const max = uint64(1<<63 - 1)
+	const cutoff = max/10 + 1
+
+	for len(s) > 7 { // Process 8 digits at a time as long as possible.
+		c0, c1, c2, c3, c4, c5, c6, c7 := s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7]
+		if c0 < '0' || c0 > '9' || c1 < '0' || c1 > '9' ||
+			c2 < '0' || c2 > '9' || c3 < '0' || c3 > '9' ||
+			c4 < '0' || c4 > '9' || c5 < '0' || c5 > '9' ||
+			c6 < '0' || c6 > '9' || c7 < '0' || c7 > '9' {
+			return 0, ErrSyntax
+		}
+		d := uint64(c0-'0')*10_000_000 +
+			uint64(c1-'0')*1_000_000 +
+			uint64(c2-'0')*100_000 +
+			uint64(c3-'0')*10_000 +
+			uint64(c4-'0')*1_000 +
+			uint64(c5-'0')*100 +
+			uint64(c6-'0')*10 +
+			uint64(c7-'0')
+		if n > (max-d)/100_000_000 {
+			return 0, ErrOverflow
+		}
+		n = n*100_000_000 + d
+		s = s[8:]
+	}
+	for len(s) > 3 { // Process 4 digits at a time as long as possible.
+		c0, c1, c2, c3 := s[0], s[1], s[2], s[3]
+		if c0 < '0' || c0 > '9' || c1 < '0' || c1 > '9' ||
+			c2 < '0' || c2 > '9' || c3 < '0' || c3 > '9' {
+			return 0, ErrSyntax
+		}
+		d := uint64(c0-'0')*1_000 +
+			uint64(c1-'0')*100 +
+			uint64(c2-'0')*10 +
+			uint64(c3-'0')
+		if n > (max-d)/10_000 {
+			return 0, ErrOverflow
+		}
+		n = n*10_000 + d
+		s = s[4:]
+	}
+	for _, c := range []byte(s) { // Process remaining digits one at a time.
+		if c < '0' || c > '9' {
+			return 0, ErrSyntax
+		}
+		if n > cutoff {
+			return 0, ErrOverflow
+		}
+		n *= 10
+		n += uint64(c - '0')
+		if n > max {
+			// n+d overflows
+			return 0, ErrOverflow
+		}
+	}
+	return int64(n), nil
 }
