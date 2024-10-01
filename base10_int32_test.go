@@ -226,8 +226,8 @@ func fuzzBase10Int32[I int64 | int32](f *testing.F) {
 	})
 }
 
-func FuzzBase10Int32_Int64(f *testing.F) { fuzzBase10Int32[int64](f) }
-func FuzzBase10Int32_Int32(f *testing.F) { fuzzBase10Int32[int32](f) }
+func FuzzBase10Int32_int64(f *testing.F) { fuzzBase10Int32[int64](f) }
+func FuzzBase10Int32_int32(f *testing.F) { fuzzBase10Int32[int32](f) }
 
 func BenchmarkBase10Int32(b *testing.B) {
 	var fn func(string) (int64, error)
