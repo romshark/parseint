@@ -1,11 +1,10 @@
 module github.com/romshark/parseint
 
-// Requires at least Go 1.18 for generics.
-go 1.18
+go 1.22.8
 
 require (
 	github.com/stretchr/testify v1.9.0
-	golang.org/x/perf v0.0.0-20240910214617-f1a715d501dd
+	golang.org/x/perf v0.0.0-20241004173025-94b0db8a2472
 )
 
 require (

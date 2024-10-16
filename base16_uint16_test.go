@@ -169,22 +169,12 @@ func FuzzBase16Uint16_uint16(f *testing.F) { fuzzBase16Uint16[uint16](f) }
 // BenchmarkBase16Uint16_uint64 compares strconv.ParseUint
 // and parseint.Base16Uint16[string, uint64]
 func BenchmarkBase16Uint16_uint64(b *testing.B) {
-	var fn func(string) (uint64, error)
-	var fnBytes func([]byte) (uint64, error)
-	switch *fBenchmarkFn {
-	case BenchmarkFnStrconv:
-		fn = func(s string) (uint64, error) {
-			return strconv.ParseUint(s, 16, 16)
-		}
-		fnBytes = func(s []byte) (uint64, error) {
-			return strconv.ParseUint(string(s), 16, 16)
-		}
-	case BenchmarkFnParseint:
-		fn = parseint.Base16Uint16[string, uint64]
-		fnBytes = parseint.Base16Uint16[[]byte, uint64]
-	default:
-		b.Fatalf("unknown benchmark function: %q", *fBenchmarkFn)
-	}
+	fn := getBenchmarkFn(b, func(s string) (uint64, error) {
+		return strconv.ParseUint(s, 16, 16)
+	}, parseint.Base16Uint16[string, uint64])
+	fnBytes := getBenchmarkFn(b, func(s []byte) (uint64, error) {
+		return strconv.ParseUint(string(s), 16, 16)
+	}, parseint.Base16Uint16[[]byte, uint64])
 
 	var a uint64
 	var err error
@@ -197,6 +187,7 @@ func BenchmarkBase16Uint16_uint64(b *testing.B) {
 		{"max_upp", "FFFF"},
 		{"syntax", "fffx"},
 		{"overflow", "FFFFF"},
+		{"leadzero31", "0000000000000000000000000000000F"},
 	} {
 		b.Run(td.name+"/string", func(b *testing.B) {
 			for n := 0; n < b.N; n++ {
@@ -217,24 +208,14 @@ func BenchmarkBase16Uint16_uint64(b *testing.B) {
 // BenchmarkBase16Uint16_uint16 compares strconv.ParseUint
 // and parseint.Base16Uint16[string, uint16]
 func BenchmarkBase16Uint16_uint16(b *testing.B) {
-	var fn func(string) (uint16, error)
-	var fnBytes func([]byte) (uint16, error)
-	switch *fBenchmarkFn {
-	case BenchmarkFnStrconv:
-		fn = func(s string) (uint16, error) {
-			x, err := strconv.ParseUint(s, 16, 16)
-			return uint16(x), err
-		}
-		fnBytes = func(s []byte) (uint16, error) {
-			x, err := strconv.ParseUint(string(s), 16, 16)
-			return uint16(x), err
-		}
-	case BenchmarkFnParseint:
-		fn = parseint.Base16Uint16[string, uint16]
-		fnBytes = parseint.Base16Uint16[[]byte, uint16]
-	default:
-		b.Fatalf("unknown benchmark function: %q", *fBenchmarkFn)
-	}
+	fn := getBenchmarkFn(b, func(s string) (uint16, error) {
+		x, err := strconv.ParseUint(s, 16, 16)
+		return uint16(x), err
+	}, parseint.Base16Uint16[string, uint16])
+	fnBytes := getBenchmarkFn(b, func(s []byte) (uint16, error) {
+		x, err := strconv.ParseUint(string(s), 16, 16)
+		return uint16(x), err
+	}, parseint.Base16Uint16[[]byte, uint16])
 
 	var a uint16
 	var err error

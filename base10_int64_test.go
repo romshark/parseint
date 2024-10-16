@@ -409,22 +409,12 @@ func FuzzBase10Int64(f *testing.F) {
 }
 
 func BenchmarkBase10Int64(b *testing.B) {
-	var fn func(string) (int64, error)
-	var fnBytes func([]byte) (int64, error)
-	switch *fBenchmarkFn {
-	case BenchmarkFnStrconv:
-		fn = func(s string) (int64, error) {
-			return strconv.ParseInt(s, 10, 64)
-		}
-		fnBytes = func(s []byte) (int64, error) {
-			return strconv.ParseInt(string(s), 10, 64)
-		}
-	case BenchmarkFnParseint:
-		fn = parseint.Base10Int64[string]
-		fnBytes = parseint.Base10Int64[[]byte]
-	default:
-		b.Fatalf("unknown benchmark function: %q", *fBenchmarkFn)
-	}
+	fn := getBenchmarkFn(b, func(s string) (int64, error) {
+		return strconv.ParseInt(s, 10, 64)
+	}, parseint.Base10Int64[string])
+	fnBytes := getBenchmarkFn(b, func(s []byte) (int64, error) {
+		return strconv.ParseInt(string(s), 10, 64)
+	}, parseint.Base10Int64[[]byte])
 
 	var a int64
 	var err error

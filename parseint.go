@@ -44,13 +44,13 @@ INT:
 		return 0, ErrSyntax
 	case 2:
 		v1, v2 := uint16(lutHex[s[0]]), uint16(lutHex[s[1]])
-		if v1|v2 == uint16base16InvalidByte {
+		if v1|v2 == invalidHexByte {
 			return 0, ErrSyntax
 		}
 		return U((v1 << 4) | v2), nil
 	case 3:
 		v1, v2, v3 := uint16(lutHex[s[0]]), uint16(lutHex[s[1]]), uint16(lutHex[s[2]])
-		if v1|v2|v3 == uint16base16InvalidByte {
+		if v1|v2|v3 == invalidHexByte {
 			return 0, ErrSyntax
 		}
 		return U((v1 << 8) | (v2 << 4) | v3), nil
@@ -59,7 +59,7 @@ INT:
 		v2 := uint16(lutHex[s[1]])
 		v3 := uint16(lutHex[s[2]])
 		v4 := uint16(lutHex[s[3]])
-		if v1|v2|v3|v4 == uint16base16InvalidByte {
+		if v1|v2|v3|v4 == invalidHexByte {
 			return 0, ErrSyntax
 		}
 		return U((v1 << 12) | (v2 << 8) | (v3 << 4) | v4), nil
@@ -67,8 +67,116 @@ INT:
 	return 0, ErrSyntax // Invalid or overflow
 }
 
-// uint16base16InvalidByte is used in lutHex to mark invalid characters.
-const uint16base16InvalidByte = 0xff
+// Base16Uint32 parses s as a base-16 (hexadecimal) unsigned 32-bit integer.
+// ErrSyntax is returned in any error case. ErrOverflow will never be returned
+// because it would cost extra to determine overflow errors and this computation
+// would be wasted in most cases where we don't care what kind of error there was.
+// Base16Uint32 is comparable to strconv.ParseUint(s, 16, 32) but is more efficient.
+func Base16Uint32[S string | []byte, U ~uint64 | ~uint32](s S) (U, error) {
+	if len(s) == 0 {
+		return 0, ErrSyntax
+	}
+	if s[0] == '0' { // Skip all leading zeroes if any
+		var i int
+		var c byte
+		for i, c = range []byte(s) {
+			if c != '0' {
+				s = s[i:]
+				goto INT
+			}
+		}
+		if i == len(s)-1 {
+			return 0, nil // Input consists exclusively of zeroes.
+		}
+	}
+INT:
+	switch len(s) {
+	case 1:
+		switch c := s[0]; {
+		case c >= '0' && c <= '9':
+			return U(c - '0'), nil
+		case c >= 'a' && c <= 'f':
+			return U(c-'a') + 10, nil
+		case c >= 'A' && c <= 'F':
+			return U(c-'A') + 10, nil
+		}
+		return 0, ErrSyntax
+	case 2:
+		v1, v2 := uint16(lutHex[s[0]]), uint16(lutHex[s[1]])
+		if v1|v2 == invalidHexByte {
+			return 0, ErrSyntax
+		}
+		return U((v1 << 4) | v2), nil
+	case 3:
+		v1, v2, v3 := uint16(lutHex[s[0]]), uint16(lutHex[s[1]]), uint16(lutHex[s[2]])
+		if v1|v2|v3 == invalidHexByte {
+			return 0, ErrSyntax
+		}
+		return U((v1 << 8) | (v2 << 4) | v3), nil
+	case 4:
+		v1 := uint32(lutHex[s[0]])
+		v2 := uint32(lutHex[s[1]])
+		v3 := uint32(lutHex[s[2]])
+		v4 := uint32(lutHex[s[3]])
+		if v1|v2|v3|v4 == invalidHexByte {
+			return 0, ErrSyntax
+		}
+		return U((v1 << 12) | (v2 << 8) | (v3 << 4) | v4), nil
+	case 5:
+		v1 := uint32(lutHex[s[0]])
+		v2 := uint32(lutHex[s[1]])
+		v3 := uint32(lutHex[s[2]])
+		v4 := uint32(lutHex[s[3]])
+		v5 := uint32(lutHex[s[4]])
+		if v1|v2|v3|v4|v5 == invalidHexByte {
+			return 0, ErrSyntax
+		}
+		return U((v1 << 16) | (v2 << 12) | (v3 << 8) | (v4 << 4) | v5), nil
+	case 6:
+		v1 := uint32(lutHex[s[0]])
+		v2 := uint32(lutHex[s[1]])
+		v3 := uint32(lutHex[s[2]])
+		v4 := uint32(lutHex[s[3]])
+		v5 := uint32(lutHex[s[4]])
+		v6 := uint32(lutHex[s[5]])
+		if v1|v2|v3|v4|v5|v6 == invalidHexByte {
+			return 0, ErrSyntax
+		}
+		return U((v1 << 20) | (v2 << 16) | (v3 << 12) |
+			(v4 << 8) | (v5 << 4) | v6), nil
+	case 7:
+		v1 := uint32(lutHex[s[0]])
+		v2 := uint32(lutHex[s[1]])
+		v3 := uint32(lutHex[s[2]])
+		v4 := uint32(lutHex[s[3]])
+		v5 := uint32(lutHex[s[4]])
+		v6 := uint32(lutHex[s[5]])
+		v7 := uint32(lutHex[s[6]])
+		if v1|v2|v3|v4|v5|v6|v7 == invalidHexByte {
+			return 0, ErrSyntax
+		}
+		return U((v1 << 24) | (v2 << 20) | (v3 << 16) | (v4 << 12) |
+			(v5 << 8) | (v6 << 4) | v7), nil
+	case 8:
+		v1 := uint32(lutHex[s[0]])
+		v2 := uint32(lutHex[s[1]])
+		v3 := uint32(lutHex[s[2]])
+		v4 := uint32(lutHex[s[3]])
+		v5 := uint32(lutHex[s[4]])
+		v6 := uint32(lutHex[s[5]])
+		v7 := uint32(lutHex[s[6]])
+		v8 := uint32(lutHex[s[7]])
+		if v1|v2|v3|v4|v5|v6|v7|v8 == invalidHexByte {
+			return 0, ErrSyntax
+		}
+		return U((v1 << 28) | (v2 << 24) | (v3 << 20) | (v4 << 16) | (v5 << 12) |
+			(v6 << 8) | (v7 << 4) | v8), nil
+	}
+	return 0, ErrSyntax // Invalid or overflow
+}
+
+// invalidHexByte is used in lutHex to mark invalid characters.
+const invalidHexByte = 0xff
 
 // lutHex is a lookup table mapping hex characters to their respective base-10 value.
 // All other bytes are mapped to uint16base16InvalidByte.
@@ -76,7 +184,7 @@ var lutHex = [256]uint8{}
 
 func init() {
 	for i := range lutHex {
-		lutHex[i] = uint16base16InvalidByte
+		lutHex[i] = invalidHexByte
 	}
 	lutHex['0'] = 0
 	lutHex['1'] = 1
@@ -364,7 +472,6 @@ func Base10Int64[S string | []byte](s S) (int64, error) {
 		n *= 10
 		n += uint64(c - '0')
 		if n > max {
-			// n+d overflows
 			return 0, ErrOverflow
 		}
 	}
